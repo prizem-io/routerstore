@@ -38,13 +38,19 @@ func TestMain(m *testing.M) {
 }
 
 func TestRouteOk(t *testing.T) {
+	root := "root"
 	details := "details"
 	var handler RouteMux
+
+	handler.GET("/", root)
+	err := handler.Match("GET", "/", &result)
+	require.Nil(t, err)
+	assert.Equal(t, root, result.Data)
 
 	handler.GET("/person/:last/:first/", details)
 	registerResources(&handler, resources)
 
-	err := handler.Match("GET", "/person/anderson/thomas/", &result)
+	err = handler.Match("GET", "/person/anderson/thomas/", &result)
 	require.Nil(t, err)
 	assert.Equal(t, details, result.Data)
 	assert.Equal(t, "anderson", result.Param("last"))

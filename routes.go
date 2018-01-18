@@ -120,14 +120,6 @@ func (m *RouteMux) AddRoute(method string, pattern string, data interface{}) err
 		pattern = pattern[:l-1]
 		l--
 	}
-	parts := strings.Split(pattern, "/")
-
-	// Check for misplaced wildcard parts.
-	for i, part := range parts {
-		if part == "*" && i != len(parts)-1 {
-			return ErrWildcardMisplaced
-		}
-	}
 
 	// Initialize methods map, if needed.
 	if m.methods == nil {
@@ -139,6 +131,20 @@ func (m *RouteMux) AddRoute(method string, pattern string, data interface{}) err
 	if !ok {
 		r = &route{}
 		m.methods[method] = r
+	}
+
+	if l == 0 {
+		r.data = data
+		return nil
+	}
+
+	parts := strings.Split(pattern, "/")
+
+	// Check for misplaced wildcard parts.
+	for i, part := range parts {
+		if part == "*" && i != len(parts)-1 {
+			return ErrWildcardMisplaced
+		}
 	}
 
 	// Create a slice to capture path parameter names.
@@ -290,6 +296,11 @@ func (m *RouteMux) Match(method string, requestPath string, result *Result) erro
 	for l > 0 && requestPath[l-1] == '/' {
 		requestPath = requestPath[:l-1]
 		l--
+	}
+
+	if l == 0 {
+		result.Data = r.data
+		return nil
 	}
 
 	wildcard := false
